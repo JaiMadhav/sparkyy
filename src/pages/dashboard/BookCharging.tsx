@@ -171,46 +171,13 @@ export default function BookCharging() {
     }
   };
 
-  const fetchRouteFromOSRM = async (startLat: number, startLng: number, endLat: number, endLng: number) => {
-    try {
-      // OSRM expects coordinates in lng,lat order
-      const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`);
-      const data = await response.json();
-
-      if (data.code === 'Ok' && data.routes.length > 0) {
-        const route = data.routes[0];
-        // OSRM returns coordinates as [lng, lat], Leaflet needs [lat, lng]
-        const path: [number, number][] = route.geometry.coordinates.map((coord: number[]) => [coord[1], coord[0]]);
-        
-        setRoutePath(path);
-        setRouteDistance(route.distance / 1000); // convert meters to km
-        
-        // Convert duration from seconds to a readable string
-        const durationMinutes = Math.round(route.duration / 60);
-        setRouteDuration(`${durationMinutes} mins`);
-      } else {
-        console.error("OSRM Routing failed:", data);
-        // Fallback to straight line if routing fails
-        setRoutePath([[startLat, startLng], [endLat, endLng]]);
-        setRouteDistance(getDistanceFromLatLonInKm(startLat, startLng, endLat, endLng));
-        setRouteDuration("Unknown");
-      }
-    } catch (error) {
-      console.error("Error fetching route:", error);
-      // Fallback to straight line
-      setRoutePath([[startLat, startLng], [endLat, endLng]]);
-      setRouteDistance(getDistanceFromLatLonInKm(startLat, startLng, endLat, endLng));
-      setRouteDuration("Unknown");
-    }
-  };
-
   const calculateTotalCost = (distance: number, energy: number) => {
     const distanceCharge = distance * DISPATCH_COST_PER_KM;
     const energyCost = energy * CHARGING_COST_PER_KWH;
     return BASE_SERVICE_FEE + energyCost + distanceCharge;
   };
 
-  const allocateBestVan = useCallback((userLat: number, userLng: number, energy: number) => {
+  const allocateBestVan = useCallback(async (userLat: number, userLng: number, energy: number) => {
     // 1. Filter available vans
     const availableVans = vans.filter(van => van.status === 'available');
 
@@ -223,30 +190,54 @@ export default function BookCharging() {
     let bestVan: Van | null = null;
     let lowestCost = Infinity;
     let bestDistance = 0;
+    let bestRoutePath: [number, number][] = [];
+    let bestRouteDuration = "";
 
-    // 2. Evaluate all available vans to find the lowest cost
-    availableVans.forEach(van => {
-      // For a real app, we would use OSRM here for accurate distance, 
-      // but to avoid spamming the API in a loop, we use straight-line distance as a proxy for cost comparison.
+    // 2. Evaluate all available vans using OSRM to find the shortest actual driving distance
+    const routePromises = availableVans.map(async (van) => {
+      try {
+        const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${van.lng},${van.lat};${userLng},${userLat}?overview=full&geometries=geojson`);
+        const data = await response.json();
+        
+        if (data.code === 'Ok' && data.routes.length > 0) {
+          const route = data.routes[0];
+          const distanceKm = route.distance / 1000;
+          return { van, distanceKm, route };
+        }
+      } catch (e) {
+        console.error("Error fetching route for van", van.id, e);
+      }
+      // Fallback to straight line if OSRM fails for this van
       const straightLineDistance = getDistanceFromLatLonInKm(userLat, userLng, van.lat, van.lng);
-      
-      // 3. Compute total estimated cost
-      const estimatedCost = calculateTotalCost(straightLineDistance, energy);
+      return { van, distanceKm: straightLineDistance, route: null };
+    });
 
-      // 4. Select van with minimum total cost
+    const results = await Promise.all(routePromises);
+
+    results.forEach(result => {
+      const estimatedCost = calculateTotalCost(result.distanceKm, energy);
       if (estimatedCost < lowestCost) {
         lowestCost = estimatedCost;
-        bestVan = van;
-        bestDistance = straightLineDistance;
+        bestVan = result.van;
+        bestDistance = result.distanceKm;
+        if (result.route) {
+          const path: [number, number][] = result.route.geometry.coordinates.map((coord: number[]) => [coord[1], coord[0]]);
+          bestRoutePath = path;
+          const durationMinutes = Math.round(result.route.duration / 60);
+          bestRouteDuration = `${durationMinutes} mins`;
+        } else {
+          bestRoutePath = [[result.van.lat, result.van.lng], [userLat, userLng]];
+          bestRouteDuration = "Unknown";
+        }
       }
     });
 
     if (bestVan) {
       setAllocatedVan(bestVan);
-      setActiveVanPosition([bestVan.lat, bestVan.lng]);
-
-      // Calculate actual Route using OSRM for the selected best van
-      fetchRouteFromOSRM(bestVan.lat, bestVan.lng, userLat, userLng);
+      setActiveVanPosition([bestVan!.lat, bestVan!.lng]);
+      setRoutePath(bestRoutePath);
+      setRouteDistance(bestDistance);
+      setRouteDuration(bestRouteDuration);
     }
   }, [vans]);
 
@@ -392,32 +383,40 @@ export default function BookCharging() {
         // Arrived, start charging
         setSimulationStatus("Charging in progress...");
         updateVanStatus(allocatedVan.id, 'charging');
+        setSimulationProgress(0);
         
-        setTimeout(async () => {
-          // 7. After charging is completed, update status back to available
-          setSimulationStatus("Charging completed!");
-          updateVanStatus(allocatedVan.id, 'available');
+        let chargeProgress = 0;
+        const chargeInterval = setInterval(async () => {
+          chargeProgress += 2;
+          setSimulationProgress(chargeProgress);
           
-          // Update booking status to pending_payment
-          try {
-            await bookingService.updateBookingStatus(bookingId, 'pending_payment');
-          } catch (e) {
-            console.error("Failed to update booking status to pending_payment:", e);
+          if (chargeProgress >= 100) {
+            clearInterval(chargeInterval);
+            
+            // 7. After charging is completed, update status back to available
+            setSimulationStatus("Charging completed!");
+            updateVanStatus(allocatedVan.id, 'available');
+            
+            // Update booking status to pending_payment
+            try {
+              await bookingService.updateBookingStatus(bookingId, 'pending_payment');
+            } catch (e) {
+              console.error("Failed to update booking status to pending_payment:", e);
+            }
+            
+            setTimeout(() => {
+              setIsSimulating(false);
+              setSimulationStatus("");
+              setSimulationProgress(0);
+              setCurrentStep(0);
+              setAllocatedVan(null);
+              setRoutePath([]);
+              setActiveVanPosition(null);
+              // Redirect to payment
+              navigate('/dashboard/payment', { state: { bookingId: bookingId, amount: totalCost } });
+            }, 2000);
           }
-          
-          setTimeout(() => {
-            setIsSimulating(false);
-            setSimulationStatus("");
-            setSimulationProgress(0);
-            setCurrentStep(0);
-            setAllocatedVan(null);
-            setRoutePath([]);
-            setActiveVanPosition(null);
-            // Redirect to payment
-            navigate('/dashboard/payment', { state: { bookingId: bookingId, amount: totalCost } });
-          }, 2000);
-          
-        }, 5000); // Simulate 5 seconds of charging
+        }, 100); // 50 steps of 100ms = 5000ms
         
         return;
       }
@@ -736,10 +735,14 @@ export default function BookCharging() {
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-emerald-400 mb-1">
                     <span>{simulationStatus}</span>
-                    {simulationProgress < 100 && <span>{simulationProgress}%</span>}
+                    {simulationStatus === "Charging completed!" ? (
+                      <span>100%</span>
+                    ) : (
+                      simulationProgress < 100 && <span>{simulationProgress}%</span>
+                    )}
                   </div>
                   <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div className={`h-2 rounded-full transition-all duration-500 ${simulationProgress === 100 ? 'bg-blue-500 animate-pulse' : 'bg-emerald-500'}`} style={{ width: `${simulationProgress}%` }}></div>
+                    <div className={`h-2 rounded-full transition-all duration-500 ${simulationStatus === "Charging completed!" ? 'bg-emerald-500 w-full' : simulationProgress === 100 ? 'bg-blue-500 animate-pulse' : 'bg-emerald-500'}`} style={{ width: simulationStatus === "Charging completed!" ? '100%' : `${simulationProgress}%` }}></div>
                   </div>
                 </div>
               )}

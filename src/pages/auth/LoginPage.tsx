@@ -40,6 +40,27 @@ export default function LoginPage() {
       if (error) throw error;
       
       if (data.session) {
+        // Generate a new session token to prevent multiple logins
+        const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem('app_session_token', token);
+        
+        // Update user metadata with the new token
+        await supabase.auth.updateUser({
+          data: { current_session_token: token }
+        });
+        
+        // Log the activity
+        try {
+          await supabase.from('activity_logs').insert([{
+            user_id: data.session.user.id,
+            action: 'login',
+            details: { device: navigator.userAgent },
+            created_at: new Date().toISOString()
+          }]);
+        } catch (e) {
+          // Ignore if table doesn't exist yet
+        }
+        
         navigate("/dashboard");
       } else {
         // This case is rare for signInWithPassword but good to handle
@@ -61,7 +82,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout 
-      title="Welcome back" 
+      title="Welcome" 
       subtitle="Enter your credentials to access your account"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

@@ -409,6 +409,10 @@ export default function ProfileSettings() {
                   label="Phone Number" 
                   name="phone" 
                   value={formData.phone || "Not provided"} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setFormData(prev => ({ ...prev, phone: val }));
+                  }}
                   disabled
                   className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                 />
@@ -433,7 +437,10 @@ export default function ProfileSettings() {
                   label="Aadhaar Number" 
                   name="aadhaar_number" 
                   value={formData.aadhaar_number} 
-                  onChange={handleChange} 
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setFormData(prev => ({ ...prev, aadhaar_number: val }));
+                  }}
                   placeholder="12-digit Aadhaar Number"
                   maxLength={12}
                 />

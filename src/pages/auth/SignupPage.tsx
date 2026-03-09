@@ -120,7 +120,10 @@ export default function SignupPage() {
           type="tel"
           placeholder="9876543210"
           value={formData.phone}
-          onChange={handleChange}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, '');
+            setFormData({ ...formData, phone: val });
+          }}
           required
         />
         

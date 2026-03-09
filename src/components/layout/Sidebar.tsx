@@ -7,7 +7,8 @@ import {
   History, 
   Settings, 
   LogOut,
-  User
+  User,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -23,6 +24,7 @@ const sidebarItems = [
   { icon: Car, label: "My Vehicles", href: "/dashboard/vehicles" },
   { icon: Zap, label: "Book Charging", href: "/dashboard/book" },
   { icon: History, label: "History", href: "/dashboard/history" },
+  { icon: CreditCard, label: "Payments", href: "/dashboard/payments" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 

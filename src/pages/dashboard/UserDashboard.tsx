@@ -156,7 +156,7 @@ export default function UserDashboard() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Welcome back, {user?.full_name?.split(' ')[0] || 'User'}. Here's your EV charging overview.
+            Welcome, {user?.full_name?.split(' ')[0] || 'User'}. Here's your EV charging overview.
           </p>
         </div>
         <Link to="/dashboard/book">
@@ -218,9 +218,9 @@ export default function UserDashboard() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-slate-400 mb-1">Location</p>
-                      <p className="font-medium text-white flex items-center gap-2 truncate" title={activeBooking.location}>
+                      <p className="font-medium text-white flex items-center gap-2" title={activeBooking.location}>
                         <MapPin className="h-4 w-4 text-emerald-400 flex-shrink-0" /> 
-                        <span className="truncate">
+                        <span>
                           {formatLocation(activeBooking.location)}
                         </span>
                       </p>

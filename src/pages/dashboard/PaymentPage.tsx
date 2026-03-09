@@ -7,6 +7,7 @@ import { Lock, CheckCircle, ShieldCheck } from "lucide-react";
 import { paymentService } from "@/services/paymentService";
 import { bookingService } from "@/services/bookingService";
 import { profileService } from "@/services/profileService";
+import { supabase } from "@/supabaseClient";
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -44,9 +45,20 @@ export default function PaymentPage() {
       const details = await bookingService.getBookingById(id);
       setBookingDetails(details);
       
+      // Check if payment already exists in database
+      const { data: existingPayments } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('booking_id', id);
+
       // Prevent duplicate payment
-      if (details.status === 'completed') {
+      if (details.status === 'completed' || (existingPayments && existingPayments.length > 0)) {
         setSuccess(true);
+        if (details.status !== 'completed') {
+          // Auto-fix booking status if payment exists but status wasn't updated
+          await bookingService.updateBookingStatus(id, "completed");
+        }
+        return;
       }
       
       // For mock purposes, we keep amount at ₹1
@@ -76,9 +88,7 @@ export default function PaymentPage() {
       }
 
       // Create Order
-      const apiUrl = import.meta.env.VITE_APP_URL 
-        ? `${import.meta.env.VITE_APP_URL}/api/create-order`
-        : '/api/create-order';
+      const apiUrl = '/api/create-order';
       
       const orderResponse = await fetch(apiUrl, {
         method: 'POST',
@@ -112,9 +122,7 @@ export default function PaymentPage() {
         handler: async function (response: any) {
           try {
             // Verify payment
-            const verifyUrl = import.meta.env.VITE_APP_URL 
-              ? `${import.meta.env.VITE_APP_URL}/api/verify-payment`
-              : '/api/verify-payment';
+            const verifyUrl = '/api/verify-payment';
               
             const verifyResponse = await fetch(verifyUrl, {
               method: 'POST',
@@ -170,6 +178,13 @@ export default function PaymentPage() {
         setProcessing(false);
       });
 
+      // Handle user closing the modal
+      rzp.on('payment.modal.closed', function() {
+        setProcessing(false);
+        // Optionally, you can add a toast or alert here
+        // alert("Payment cancelled. You can complete it later from your dashboard.");
+      });
+
       rzp.open();
     } catch (error: any) {
       console.error("Payment initialization failed:", error);
@@ -197,7 +212,7 @@ export default function PaymentPage() {
     <DashboardLayout>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Payment</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">Complete your booking securely.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">Complete your payment securely.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -245,7 +260,7 @@ export default function PaymentPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600 dark:text-slate-400">Location</span>
-                    <span className="font-medium dark:text-white truncate max-w-[200px]" title={bookingDetails.location}>
+                    <span className="font-medium dark:text-white text-right max-w-[200px]" title={bookingDetails.location}>
                       {bookingDetails.location || "Custom Location"}
                     </span>
                   </div>
