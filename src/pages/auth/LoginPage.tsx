@@ -97,23 +97,9 @@ export default function LoginPage() {
           required
         />
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm text-slate-600">
-            <input type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-600" />
-            Remember me
-          </label>
-        </div>
-
         <Button type="submit" className="w-full" isLoading={isLoading}>
           Sign in
         </Button>
-
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm flex items-center gap-2 whitespace-pre-wrap mt-4">
-            <AlertCircle className="h-4 w-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
 
         <div className="text-center text-sm text-slate-600 mt-4">
           Don't have an account?{" "}

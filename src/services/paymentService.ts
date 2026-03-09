@@ -9,8 +9,7 @@ export const paymentService = {
       .from('payments')
       .insert([{ 
         ...payment, 
-        user_id: user.id,
-        status: 'completed' // Simulating successful payment
+        user_id: user.id
       }])
       .select()
       .single();

@@ -13,14 +13,6 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900"></div>
         
         <div className="container mx-auto px-4 py-24 relative z-10 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Live in 5 major cities
-          </div>
-          
           <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6 max-w-4xl">
             Charge your EV <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Anywhere, Anytime.</span>
           </h1>

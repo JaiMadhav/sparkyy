@@ -10,6 +10,7 @@ import { vehicleService } from "@/services/vehicleService";
 import { paymentService } from "@/services/paymentService";
 import { profileService } from "@/services/profileService";
 import { formatLocation } from "@/utils/location";
+import { supabase } from "@/supabaseClient";
 
 export default function UserDashboard() {
   const location = useLocation();
@@ -52,6 +53,11 @@ export default function UserDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      // Call getSession first to ensure session is refreshed sequentially
+      // This prevents the "Lock broken by another request with the 'steal' option" error
+      // which happens when multiple concurrent requests try to refresh the session.
+      await supabase.auth.getSession();
+
       const [bookings, vehiclesData, payments, profile, active] = await Promise.all([
         bookingService.getBookings(),
         vehicleService.getVehicles(),

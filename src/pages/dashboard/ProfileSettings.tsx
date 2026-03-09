@@ -49,6 +49,9 @@ export default function ProfileSettings() {
 
   const loadProfile = async () => {
     try {
+      // Call getSession first to ensure session is refreshed sequentially
+      // This prevents the "Lock broken by another request with the 'steal' option" error
+      await supabase.auth.getSession();
       const profile = await profileService.getProfile();
       if (profile) {
         const data = {

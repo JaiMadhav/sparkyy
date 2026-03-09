@@ -16,6 +16,7 @@ import { profileService } from "@/services/profileService";
 import { authService } from "@/services/authService";
 import { Button } from "@/components/ui/Button";
 import { AlertTriangle, X } from "lucide-react";
+import { supabase } from "@/supabaseClient";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -37,6 +38,9 @@ export function Sidebar() {
 
   const loadProfile = async () => {
     try {
+      // Call getSession first to ensure session is refreshed sequentially
+      // This prevents the "Lock broken by another request with the 'steal' option" error
+      await supabase.auth.getSession();
       const profile = await profileService.getProfile();
       setUser(profile);
     } catch (error) {

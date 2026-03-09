@@ -43,6 +43,12 @@ export default function PaymentPage() {
     try {
       const details = await bookingService.getBookingById(id);
       setBookingDetails(details);
+      
+      // Prevent duplicate payment
+      if (details.status === 'completed') {
+        setSuccess(true);
+      }
+      
       // For mock purposes, we keep amount at ₹1
       setAmount(1.00);
     } catch (error) {
@@ -64,49 +70,107 @@ export default function PaymentPage() {
     setProcessing(true);
 
     try {
-      // Use the production URL if available, otherwise fallback to current origin
-      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-      const callbackUrl = `${appUrl}/dashboard`;
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error("Razorpay SDK failed to load. Are you online?");
+      }
+
+      // Create Order
       const apiUrl = import.meta.env.VITE_APP_URL 
-        ? `${import.meta.env.VITE_APP_URL}/api/create-payment-link`
-        : '/api/create-payment-link';
+        ? `${import.meta.env.VITE_APP_URL}/api/create-order`
+        : '/api/create-order';
       
-      const linkResponse = await fetch(apiUrl, {
+      const orderResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 1.00, // Force ₹1 for mock testing
+          amount: amount, // Use actual amount
           receipt: bookingId || `receipt_${Date.now()}`,
-          customer: {
-            name: userProfile?.full_name || "Guest User",
-            email: userProfile?.email || "guest@example.com",
-            phone: userProfile?.phone || "+919999999999"
-          },
-          callback_url: callbackUrl
         }),
       });
 
-      if (!linkResponse.ok) {
-        let errorMessage = `Server responded with ${linkResponse.status}`;
+      if (!orderResponse.ok) {
+        let errorMessage = `Server responded with ${orderResponse.status}`;
         try {
-          const errorData = await linkResponse.json();
+          const errorData = await orderResponse.json();
           errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          // Not JSON or empty body
-        }
+        } catch (e) {}
         throw new Error(errorMessage);
       }
 
-      const linkData = await linkResponse.json();
+      const orderData = await orderResponse.json();
       
-      if (linkData.short_url) {
-        // Redirect to Razorpay hosted checkout
-        window.location.href = linkData.short_url;
-      } else {
-        throw new Error("No payment URL received from Razorpay");
-      }
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "SPARK EV",
+        description: "EV Charging Service",
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          try {
+            // Verify payment
+            const verifyUrl = import.meta.env.VITE_APP_URL 
+              ? `${import.meta.env.VITE_APP_URL}/api/verify-payment`
+              : '/api/verify-payment';
+              
+            const verifyResponse = await fetch(verifyUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyData.success) {
+              // Update database
+              if (bookingId) {
+                await bookingService.updateBookingStatus(bookingId, "completed");
+              }
+              await paymentService.createPayment({
+                amount: amount,
+                booking_id: bookingId,
+                transaction_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+                status: "completed"
+              });
+
+              setSuccess(true);
+            } else {
+              alert("Payment verification failed.");
+            }
+          } catch (error) {
+            console.error("Verification error", error);
+            alert("Payment verification error.");
+          } finally {
+            setProcessing(false);
+          }
+        },
+        prefill: {
+          name: userProfile?.full_name || "Guest User",
+          email: userProfile?.email || "guest@example.com",
+          contact: userProfile?.phone || "+919999999999"
+        },
+        theme: {
+          color: "#059669"
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      
+      rzp.on('payment.failed', function (response: any){
+        alert(response.error.description);
+        setProcessing(false);
+      });
+
+      rzp.open();
     } catch (error: any) {
       console.error("Payment initialization failed:", error);
       alert(`Failed to initialize payment: ${error.message || 'Please check your Razorpay API keys.'}`);

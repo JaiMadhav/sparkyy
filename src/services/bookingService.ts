@@ -10,7 +10,7 @@ export const bookingService = {
       .insert([{ 
         ...booking, 
         user_id: user.id,
-        status: 'pending'
+        status: 'pending_payment'
       }])
       .select()
       .single();

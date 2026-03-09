@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import "dotenv/config";
 import Razorpay from "razorpay";
+import crypto from "crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -19,68 +20,61 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", env: process.env.NODE_ENV });
 });
 
-// Razorpay Payment Link Endpoint
-app.post("/api/create-payment-link", async (req, res) => {
-  console.log("POST /api/create-payment-link - Request Body:", JSON.stringify(req.body));
+// Razorpay Create Order Endpoint
+app.post("/api/create-order", async (req, res) => {
   try {
-    const { amount, receipt, customer, callback_url } = req.body;
+    const { amount, receipt } = req.body;
     
     const key_id = process.env.RAZORPAY_KEY_ID;
     const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!key_id || !key_secret) {
-      console.error("Razorpay API keys are missing in environment variables.");
-      return res.status(500).json({ 
-        error: "Razorpay API keys are not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your environment variables." 
-      });
+      return res.status(500).json({ error: "Razorpay API keys are not configured." });
     }
     
-    const razorpay = new Razorpay({
-      key_id,
-      key_secret,
-    });
-
-    console.log(`Creating payment link for amount: ${amount}, receipt: ${receipt}`);
+    const razorpay = new Razorpay({ key_id, key_secret });
 
     const options = {
-      amount: Math.round(amount * 100),
+      amount: Math.round(amount * 100), // amount in smallest currency unit
       currency: "INR",
-      accept_partial: false,
-      description: "SPARK EV Charging Service",
-      customer: {
-        name: customer?.name || "Guest User",
-        email: customer?.email || "guest@example.com",
-        contact: customer?.phone || "+919999999999"
-      },
-      notify: {
-        sms: false,
-        email: false
-      },
-      reminder_enable: false,
-      notes: {
-        booking_id: receipt
-      },
-      callback_url: callback_url,
-      callback_method: "get"
+      receipt: receipt,
     };
     
-    const paymentLink = await razorpay.paymentLink.create(options);
-    console.log("Payment link created successfully:", paymentLink.id);
-    res.json(paymentLink);
+    const order = await razorpay.orders.create(options);
+    res.json(order);
   } catch (error: any) {
-    console.error("Razorpay Error Details:", JSON.stringify(error, null, 2));
-    
-    let errorMessage = "Failed to create payment link";
-    
-    if (error?.error?.description) {
-      errorMessage = error.error.description;
-    } else if (error?.message) {
-      errorMessage = error.message;
-    } else if (typeof error === 'string') {
-      errorMessage = error;
+    console.error("Razorpay Order Error:", error);
+    res.status(500).json({ error: "Failed to create order" });
+  }
+});
+
+// Razorpay Verify Payment Endpoint
+app.post("/api/verify-payment", async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!key_secret) {
+      return res.status(500).json({ error: "Razorpay API keys are not configured." });
     }
-    
-    res.status(500).json({ error: errorMessage });
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", key_secret)
+      .update(body.toString())
+      .digest("hex");
+
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+      // Payment is successful
+      res.json({ success: true, message: "Payment verified successfully" });
+    } else {
+      res.status(400).json({ success: false, error: "Invalid signature" });
+    }
+  } catch (error: any) {
+    console.error("Razorpay Verify Error:", error);
+    res.status(500).json({ error: "Failed to verify payment" });
   }
 });
 

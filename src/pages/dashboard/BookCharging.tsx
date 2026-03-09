@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { MapPin, Car, Navigation, Loader2 } from "lucide-react";
 import { vehicleService } from "@/services/vehicleService";
 import { bookingService } from "@/services/bookingService";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -115,6 +115,16 @@ function MapEvents({ onMapClick }: { onMapClick: (lat: number, lng: number) => v
   return null;
 }
 
+function MapUpdater({ center, zoom }: { center: [number, number], zoom?: number }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom || 13, { duration: 1.5 });
+    }
+  }, [center, map, zoom]);
+  return null;
+}
+
 export default function BookCharging() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -142,6 +152,7 @@ export default function BookCharging() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [activeVanPosition, setActiveVanPosition] = useState<[number, number] | null>(null);
   const [simulationProgress, setSimulationProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [simulationStatus, setSimulationStatus] = useState<string>("");
 
   useEffect(() => {
@@ -398,6 +409,7 @@ export default function BookCharging() {
             setIsSimulating(false);
             setSimulationStatus("");
             setSimulationProgress(0);
+            setCurrentStep(0);
             setAllocatedVan(null);
             setRoutePath([]);
             setActiveVanPosition(null);
@@ -413,6 +425,7 @@ export default function BookCharging() {
       const point = routePath[step];
       setActiveVanPosition(point);
       setSimulationProgress(Math.round((step / totalSteps) * 100));
+      setCurrentStep(step);
       step++;
     }, 200); // Move every 200ms
   };
@@ -595,6 +608,7 @@ export default function BookCharging() {
                     zoom={11} 
                     style={{ height: '100%', width: '100%' }}
                   >
+                    <MapUpdater center={mapCenter} zoom={13} />
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -634,7 +648,7 @@ export default function BookCharging() {
                     {/* Route */}
                     {routePath.length > 0 && (
                       <Polyline 
-                        positions={routePath} 
+                        positions={routePath.slice(currentStep)} 
                         pathOptions={{ color: '#059669', weight: 5, opacity: 0.8 }} 
                       />
                     )}
