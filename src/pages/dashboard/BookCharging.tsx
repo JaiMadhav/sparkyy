@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { MapPin, Car, Navigation, Loader2 } from "lucide-react";
 import { vehicleService } from "@/services/vehicleService";
 import { bookingService } from "@/services/bookingService";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -327,7 +327,6 @@ export default function BookCharging() {
         setIsLocating(false);
       },
       (error) => {
-        console.log("Using network location fallback due to browser restrictions.");
         fallbackToIPLocation();
       },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
@@ -606,7 +605,10 @@ export default function BookCharging() {
                     center={mapCenter} 
                     zoom={11} 
                     style={{ height: '100%', width: '100%' }}
+                    scrollWheelZoom={true}
+                    zoomControl={false}
                   >
+                    <ZoomControl position="bottomright" />
                     <MapUpdater center={mapCenter} zoom={13} />
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

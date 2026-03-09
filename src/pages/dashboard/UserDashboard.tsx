@@ -3,7 +3,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { BatteryCharging, Calendar, Car, Zap, ArrowRight, MapPin, CheckCircle2, Clock, XCircle } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { bookingService } from "@/services/bookingService";
 import { vehicleService } from "@/services/vehicleService";
@@ -14,6 +14,7 @@ import { supabase } from "@/supabaseClient";
 
 export default function UserDashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalCharges: 0,
@@ -102,10 +103,8 @@ export default function UserDashboard() {
     try {
       setProcessingPayment(true);
       
-      // Mock amount: ₹1 for testing
       const actualAmount = 1.00;
 
-      // Create payment record
       await paymentService.createPayment({
         booking_id: bookingRef,
         amount: actualAmount,
@@ -113,19 +112,11 @@ export default function UserDashboard() {
         transaction_id: paymentId
       });
 
-      // Update booking status
       await bookingService.updateBookingStatus(bookingRef, "completed");
       
-      setSuccessMessage("Payment successful! Your booking has been completed.");
+      // Redirect to payments page after successful payment
+      navigate("/dashboard/payments");
       
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Refresh dashboard data
-      await loadDashboardData();
-      
-      // Auto-hide after 5 seconds
-      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err) {
       console.error("Error updating booking after redirect:", err);
       alert("Payment successful but failed to update booking. Please contact support.");

@@ -25,7 +25,7 @@ export default function PaymentPage() {
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [amount, setAmount] = useState(1.00); // Mock amount: ₹1 for testing
+  const [amount, setAmount] = useState(1.00);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [bookingDetails, setBookingDetails] = useState<any>(null);
 
@@ -55,13 +55,11 @@ export default function PaymentPage() {
       if (details.status === 'completed' || (existingPayments && existingPayments.length > 0)) {
         setSuccess(true);
         if (details.status !== 'completed') {
-          // Auto-fix booking status if payment exists but status wasn't updated
           await bookingService.updateBookingStatus(id, "completed");
         }
         return;
       }
       
-      // For mock purposes, we keep amount at ₹1
       setAmount(1.00);
     } catch (error) {
       console.error("Failed to load booking details", error);
@@ -96,7 +94,7 @@ export default function PaymentPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: amount, // Use actual amount
+          amount: amount,
           receipt: bookingId || `receipt_${Date.now()}`,
         }),
       });
@@ -134,29 +132,40 @@ export default function PaymentPage() {
               }),
             });
 
-            const verifyData = await verifyResponse.json();
+            let verifyData;
+            const contentType = verifyResponse.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              verifyData = await verifyResponse.json();
+            } else {
+              const text = await verifyResponse.text();
+              console.error("Non-JSON response from verify-payment:", text);
+              throw new Error(`Server returned non-JSON response: ${verifyResponse.status}`);
+            }
 
             if (verifyData.success) {
-              // Update database
-              if (bookingId) {
-                await bookingService.updateBookingStatus(bookingId, "completed");
+              try {
+                if (bookingId) {
+                  await bookingService.updateBookingStatus(bookingId, "completed");
+                }
+                await paymentService.createPayment({
+                  amount: amount,
+                  booking_id: bookingId,
+                  transaction_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                  status: "completed"
+                });
+              } catch (dbError) {
+                console.error("Database update failed after successful payment:", dbError);
               }
-              await paymentService.createPayment({
-                amount: amount,
-                booking_id: bookingId,
-                transaction_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                status: "completed"
-              });
 
               setSuccess(true);
             } else {
-              alert("Payment verification failed.");
+              alert(`Payment verification failed: ${verifyData.error || 'Unknown error'}`);
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error("Verification error", error);
-            alert("Payment verification error.");
+            alert(`Payment verification error: ${error.message || 'Please contact support.'}`);
           } finally {
             setProcessing(false);
           }
@@ -178,11 +187,8 @@ export default function PaymentPage() {
         setProcessing(false);
       });
 
-      // Handle user closing the modal
       rzp.on('payment.modal.closed', function() {
         setProcessing(false);
-        // Optionally, you can add a toast or alert here
-        // alert("Payment cancelled. You can complete it later from your dashboard.");
       });
 
       rzp.open();

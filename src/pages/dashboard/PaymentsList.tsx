@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { paymentService } from "@/services/paymentService";
 import { bookingService } from "@/services/bookingService";
-import { CheckCircle2, Clock, XCircle, AlertTriangle, CreditCard } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, AlertTriangle, CreditCard, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatLocation } from "@/utils/location";
 
@@ -50,9 +51,14 @@ export default function PaymentsList() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Payments</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">View your payment history and pending bills.</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Payments</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">View your payment history and pending bills.</p>
+        </div>
+        <Button onClick={loadData} variant="outline" size="sm" className="gap-2">
+          <RefreshCw className="h-4 w-4" /> Refresh
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
