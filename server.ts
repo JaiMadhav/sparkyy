@@ -9,9 +9,57 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  app.use(express.json());
+
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Razorpay Payment Link Endpoint
+  app.post("/api/create-payment-link", async (req, res) => {
+    try {
+      const { amount, receipt, customer, callback_url } = req.body;
+      
+      const key_id = process.env.RAZORPAY_KEY_ID || 'rzp_test_SP39Rx2TdectSG';
+      const key_secret = process.env.RAZORPAY_KEY_SECRET || '2otkf1WI8KbwCeeoENdrs658';
+      
+      const Razorpay = (await import('razorpay')).default;
+      
+      const razorpay = new Razorpay({
+        key_id,
+        key_secret,
+      });
+
+      const options = {
+        amount: Math.round(amount * 100),
+        currency: "INR",
+        accept_partial: false,
+        description: "SPARK EV Charging Service",
+        customer: {
+          name: customer?.name || "Guest User",
+          email: customer?.email || "guest@example.com",
+          contact: customer?.phone || "+919999999999"
+        },
+        notify: {
+          sms: false,
+          email: false
+        },
+        reminder_enable: false,
+        notes: {
+          booking_id: receipt
+        },
+        callback_url: callback_url,
+        callback_method: "get"
+      };
+      
+      const paymentLink = await razorpay.paymentLink.create(options);
+      res.json(paymentLink);
+    } catch (error: any) {
+      console.error("Error creating Razorpay payment link:", error);
+      const errorMessage = error?.error?.description || error?.message || "Failed to create payment link";
+      res.status(500).json({ error: errorMessage });
+    }
   });
 
   // OAuth URL Endpoint

@@ -7,8 +7,8 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Admin Overview</h1>
-        <p className="text-slate-500 mt-1">Platform statistics and management.</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Overview</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">Platform statistics and management.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm text-left text-slate-500">
-              <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+              <thead className="text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800/50">
                 <tr>
                   <th className="px-4 py-3">User</th>
                   <th className="px-4 py-3">Location</th>
@@ -56,8 +56,8 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <tr key={i} className="border-b hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">User #{i}</td>
+                  <tr key={i} className="border-b dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">User #{i}</td>
                     <td className="px-4 py-3">Sector {i + 2}, City</td>
                     <td className="px-4 py-3">
                       <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded">Active</span>
@@ -76,14 +76,14 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                <div key={i} className="flex items-center justify-between p-3 border dark:border-slate-800 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="bg-slate-100 p-2 rounded-full">
-                      <Truck className="h-5 w-5 text-slate-600" />
+                    <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full">
+                      <Truck className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-900">Van #{i + 100}</p>
-                      <p className="text-xs text-slate-500">Battery: {80 - i * 5}%</p>
+                      <p className="font-medium text-slate-900 dark:text-white">Van #{i + 100}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Battery: {80 - i * 5}%</p>
                     </div>
                   </div>
                   <div className="text-right">

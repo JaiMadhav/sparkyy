@@ -1,14 +1,73 @@
+import { supabase } from "../supabaseClient";
+
 export const bookingService = {
-  createBooking: async (data: any) => {
-    return { id: Math.floor(Math.random() * 1000), status: "pending", ...data };
+  createBooking: async (booking: any) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No user logged in');
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert([{ 
+        ...booking, 
+        user_id: user.id,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   },
+
   getBookings: async () => {
-    return [
-      { id: 1, date: "2023-10-25", location: "123 Main St", energy: "15 kWh", price: "$12.50", status: "completed" },
-      { id: 2, date: "2023-10-28", location: "456 Oak Ave", energy: "22 kWh", price: "$18.00", status: "completed" },
-    ];
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        vehicle:vehicles(make, model, registration_number)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   },
+
   getActiveBooking: async () => {
-    return null; // or object if active
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('status', 'pending_payment')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+    return data;
+  },
+
+  getBookingById: async (id: string) => {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        vehicle:vehicles(make, model, registration_number)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  updateBookingStatus: async (id: string, status: string) => {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };

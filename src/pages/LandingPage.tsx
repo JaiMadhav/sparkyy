@@ -1,9 +1,8 @@
+import React from "react";
 import { Button } from "@/components/ui/Button";
 import { MainLayout } from "@/layouts/MainLayout";
 import { ArrowRight, BatteryCharging, Clock, MapPin, ShieldCheck, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-
-import { GoogleButton } from "@/components/ui/GoogleButton";
 
 export default function LandingPage() {
   return (
@@ -38,12 +37,6 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <div className="w-full sm:w-auto">
-              <GoogleButton 
-                text="Continue with Google" 
-                className="h-14 text-lg bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white"
-              />
-            </div>
           </div>
         </div>
       </section>

@@ -1,5 +1,5 @@
 {
   "name": "SPARK - EV Charging Platform",
   "description": "On-demand EV charging platform with mobile charging vans, live tracking, and payments.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["geolocation"]
 }

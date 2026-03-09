@@ -15,15 +15,7 @@ export function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          <Link to="/" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-            Home
-          </Link>
-          <Link to="/#features" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-            How it Works
-          </Link>
-          <Link to="/#pricing" className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-            Pricing
-          </Link>
+          {/* Links removed as per request */}
         </div>
 
         <div className="flex items-center gap-4">
