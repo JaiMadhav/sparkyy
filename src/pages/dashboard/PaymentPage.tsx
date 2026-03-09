@@ -64,9 +64,14 @@ export default function PaymentPage() {
     setProcessing(true);
 
     try {
-      const callbackUrl = `${window.location.origin}/dashboard`;
+      // Use the production URL if available, otherwise fallback to current origin
+      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const callbackUrl = `${appUrl}/dashboard`;
+      const apiUrl = import.meta.env.VITE_APP_URL 
+        ? `${import.meta.env.VITE_APP_URL}/api/create-payment-link`
+        : '/api/create-payment-link';
       
-      const linkResponse = await fetch('/api/create-payment-link', {
+      const linkResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,8 +89,14 @@ export default function PaymentPage() {
       });
 
       if (!linkResponse.ok) {
-        const errorData = await linkResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to create payment link");
+        let errorMessage = `Server responded with ${linkResponse.status}`;
+        try {
+          const errorData = await linkResponse.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Not JSON or empty body
+        }
+        throw new Error(errorMessage);
       }
 
       const linkData = await linkResponse.json();
