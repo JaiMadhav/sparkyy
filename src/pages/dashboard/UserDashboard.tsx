@@ -118,7 +118,8 @@ export default function UserDashboard() {
         booking_id: bookingRef,
         amount: actualAmount,
         payment_method: "razorpay_link",
-        transaction_id: paymentId
+        transaction_id: paymentId,
+        status: "completed"
       });
 
       await bookingService.updateBookingStatus(bookingRef, "completed");

@@ -153,7 +153,8 @@ export default function PaymentPage() {
                   transaction_id: response.razorpay_payment_id,
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_signature: response.razorpay_signature,
-                  status: "completed"
+                  status: "completed",
+                  payment_method: "razorpay"
                 });
               } catch (dbError) {
                 console.error("Database update failed after successful payment:", dbError);

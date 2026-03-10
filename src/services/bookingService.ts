@@ -24,7 +24,8 @@ export const bookingService = {
       .from('bookings')
       .select(`
         *,
-        vehicle:vehicles(make, model, registration_number)
+        vehicle:vehicles(make, model, registration_number),
+        payments(receipt_no, payment_method)
       `)
       .order('created_at', { ascending: false });
 

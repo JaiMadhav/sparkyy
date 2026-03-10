@@ -77,6 +77,11 @@ export default function BookingHistory() {
       const location = formatLocation(booking.location);
       const energy = booking.energy_requested || 'N/A';
 
+      // Extract payment info if available
+      const paymentInfo = booking.payments && booking.payments.length > 0 ? booking.payments[0] : null;
+      const receiptNo = paymentInfo?.receipt_no || `REC-${booking.id.substring(0, 8).toUpperCase()}`;
+      const paymentMethod = paymentInfo?.payment_method ? paymentInfo.payment_method.replace('_', ' ').toUpperCase() : 'ONLINE PAYMENT';
+
       const html = `
         <!DOCTYPE html>
         <html>
@@ -114,7 +119,7 @@ export default function BookingHistory() {
               </div>
               <div style="text-align: right;">
                 <h2 class="receipt-title">Tax Invoice / Receipt</h2>
-                <p style="margin: 5px 0 0 0; color: #666;">Receipt #: REC-${booking.id.substring(0, 8).toUpperCase()}</p>
+                <p style="margin: 5px 0 0 0; color: #666;">Receipt #: ${receiptNo}</p>
               </div>
             </div>
             
@@ -131,6 +136,7 @@ export default function BookingHistory() {
                 <p>${date}</p>
                 <h3>Service Status</h3>
                 <p style="color: #059669;">COMPLETED & PAID</p>
+                <p style="font-weight: normal; color: #555; font-size: 14px; margin-top: 5px;">Method: ${paymentMethod}</p>
               </div>
             </div>
           
