@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { Button } from "@/components/ui/Button";
@@ -193,8 +193,17 @@ export default function BookCharging() {
     let bestRoutePath: [number, number][] = [];
     let bestRouteDuration = "";
 
-    // 2. Evaluate all available vans using OSRM to find the shortest actual driving distance
-    const routePromises = availableVans.map(async (van) => {
+    // 2. Find the 3 closest vans using straight-line distance to avoid OSRM rate limits
+    const vansWithStraightDistance = availableVans.map(van => ({
+      van,
+      distance: getDistanceFromLatLonInKm(userLat, userLng, van.lat, van.lng)
+    }));
+    
+    vansWithStraightDistance.sort((a, b) => a.distance - b.distance);
+    const topVans = vansWithStraightDistance.slice(0, 3).map(v => v.van);
+
+    // 3. Evaluate the top vans using OSRM to find the shortest actual driving distance
+    const routePromises = topVans.map(async (van) => {
       try {
         const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${van.lng},${van.lat};${userLng},${userLat}?overview=full&geometries=geojson`);
         const data = await response.json();

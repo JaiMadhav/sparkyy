@@ -7,8 +7,7 @@ import {
   History, 
   Settings, 
   LogOut,
-  User,
-  CreditCard
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -16,7 +15,7 @@ import { useState, useEffect } from "react";
 import { profileService } from "@/services/profileService";
 import { authService } from "@/services/authService";
 import { Button } from "@/components/ui/Button";
-import { AlertTriangle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { supabase } from "@/supabaseClient";
 
 const sidebarItems = [
@@ -24,7 +23,6 @@ const sidebarItems = [
   { icon: Car, label: "My Vehicles", href: "/dashboard/vehicles" },
   { icon: Zap, label: "Book Charging", href: "/dashboard/book" },
   { icon: History, label: "History", href: "/dashboard/history" },
-  { icon: CreditCard, label: "Payments", href: "/dashboard/payments" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 

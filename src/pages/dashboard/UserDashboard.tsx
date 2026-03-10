@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { StatCard } from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { BatteryCharging, Calendar, Car, Zap, ArrowRight, MapPin, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { BatteryCharging, Car, Zap, ArrowRight, MapPin, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { bookingService } from "@/services/bookingService";
@@ -78,7 +78,9 @@ export default function UserDashboard() {
           return acc + energy;
         }, 0);
 
-      const totalSpent = payments.reduce((acc: number, curr: any) => acc + parseFloat(curr.amount), 0);
+      const totalSpent = payments
+        .filter((p: any) => p.status === 'completed')
+        .reduce((acc: number, curr: any) => acc + parseFloat(curr.amount), 0);
 
       setStats({
         totalCharges,
@@ -114,8 +116,8 @@ export default function UserDashboard() {
 
       await bookingService.updateBookingStatus(bookingRef, "completed");
       
-      // Redirect to payments page after successful payment
-      navigate("/dashboard/payments");
+      // Redirect to history page after successful payment
+      navigate("/dashboard/history");
       
     } catch (err) {
       console.error("Error updating booking after redirect:", err);
@@ -233,7 +235,7 @@ export default function UserDashboard() {
                     <div>
                       <p className="text-sm text-slate-400 mb-1">Estimated Price</p>
                       <p className="font-medium text-white text-lg">
-                        ₹{activeBooking.estimated_price}
+                        ₹{Number(activeBooking.estimated_price).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -302,7 +304,7 @@ export default function UserDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-slate-900 dark:text-white">₹{activity.estimated_price}</p>
+                        <p className="font-semibold text-slate-900 dark:text-white">₹{Number(activity.estimated_price).toFixed(2)}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{activity.status.replace('_', ' ')}</p>
                       </div>
                     </div>

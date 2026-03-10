@@ -15,7 +15,6 @@ import BookCharging from "@/pages/dashboard/BookCharging";
 import BookingHistory from "@/pages/dashboard/BookingHistory";
 import ProfileSettings from "@/pages/dashboard/ProfileSettings";
 import PaymentPage from "@/pages/dashboard/PaymentPage";
-import PaymentsList from "@/pages/dashboard/PaymentsList";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import OnboardingPage from "@/pages/onboarding/OnboardingPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -51,7 +50,6 @@ function App() {
             <Route path="/dashboard/vehicles" element={<VehicleManagement />} />
             <Route path="/dashboard/book" element={<BookCharging />} />
             <Route path="/dashboard/history" element={<BookingHistory />} />
-            <Route path="/dashboard/payments" element={<PaymentsList />} />
             <Route path="/dashboard/settings" element={<ProfileSettings />} />
             <Route path="/dashboard/payment" element={<PaymentPage />} />
           </Route>

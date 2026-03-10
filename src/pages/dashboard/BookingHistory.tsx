@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { bookingService } from "@/services/bookingService";
-import { CheckCircle2, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, AlertTriangle, Download } from "lucide-react";
 import { supabase } from "@/supabaseClient";
 import { formatLocation } from "@/utils/location";
 
@@ -55,6 +55,114 @@ export default function BookingHistory() {
     }
   };
 
+  const generateReceipt = (booking: any) => {
+    const receiptWindow = window.open('', '_blank');
+    if (!receiptWindow) {
+      alert("Please allow popups to view the receipt.");
+      return;
+    }
+
+    const date = new Date(booking.created_at).toLocaleString();
+    const price = Number(booking.estimated_price).toFixed(2);
+    const vehicle = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model} (${booking.vehicle.registration_number})` : 'Unknown Vehicle';
+    const location = formatLocation(booking.location);
+    const energy = booking.energy_requested || 'N/A';
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - SPARK EV</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; background: #f9f9f9; }
+          .receipt-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+          .logo { font-size: 28px; font-weight: bold; color: #059669; margin: 0; }
+          .logo span { color: #333; }
+          .receipt-title { font-size: 24px; color: #333; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+          .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
+          .info-block { flex: 1; }
+          .info-block h3 { font-size: 14px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+          .info-block p { margin: 0 0 5px 0; font-size: 16px; font-weight: 500; }
+          table { border-collapse: collapse; margin-bottom: 30px; width: 100%; }
+          th { text-align: left; padding: 12px; background: #f5f5f5; color: #333; font-weight: 600; text-transform: uppercase; font-size: 14px; border-bottom: 2px solid #ddd; }
+          td { padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 16px; }
+          .total-row td { font-weight: bold; font-size: 18px; border-top: 2px solid #333; border-bottom: none; }
+          .total-amount { color: #059669; font-size: 24px !important; }
+          .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+          @media print {
+            body { background: #fff; padding: 0; }
+            .receipt-container { box-shadow: none; border: none; padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          <div class="header">
+            <div>
+              <h1 class="logo">SPARK <span>EV</span></h1>
+              <p style="margin: 5px 0 0 0; color: #666;">Mobile EV Charging Service</p>
+            </div>
+            <div style="text-align: right;">
+              <h2 class="receipt-title">Tax Invoice / Receipt</h2>
+              <p style="margin: 5px 0 0 0; color: #666;">Receipt #: REC-${booking.id.substring(0, 8).toUpperCase()}</p>
+            </div>
+          </div>
+          
+          <div class="info-section">
+            <div class="info-block">
+              <h3>Billed To</h3>
+              <p>Customer</p>
+              <p style="font-weight: normal; color: #555;">${vehicle}</p>
+            </div>
+            <div class="info-block" style="text-align: right;">
+              <h3>Date of Service</h3>
+              <p>${date}</p>
+              <h3>Service Status</h3>
+              <p style="color: #059669;">COMPLETED & PAID</p>
+            </div>
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Location</th>
+                <th>Energy</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mobile EV Charging Service<br><span style="font-size: 13px; color: #666;">Includes dispatch and charging</span></td>
+                <td>${location}</td>
+                <td>${energy}</td>
+                <td style="text-align: right;">₹${price}</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="3" style="text-align: right;">Total Amount Paid</td>
+                <td class="total-amount" style="text-align: right;">₹${price}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="footer">
+            <p>Thank you for choosing SPARK EV. For support, contact support@sparkev.com</p>
+            <p>This is a computer generated receipt and does not require a physical signature.</p>
+          </div>
+        </div>
+        <script>
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `;
+
+    receiptWindow.document.open();
+    receiptWindow.document.write(html);
+    receiptWindow.document.close();
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-8">
@@ -91,7 +199,7 @@ export default function BookingHistory() {
                     <td className="px-6 py-4">
                       {booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model}` : 'Unknown Vehicle'}
                     </td>
-                    <td className="px-6 py-4">₹{booking.estimated_price}</td>
+                    <td className="px-6 py-4">₹{Number(booking.estimated_price).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         booking.status === 'completed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' :
@@ -126,7 +234,12 @@ export default function BookingHistory() {
                       ) : booking.status === 'cancelled' ? (
                         <span className="text-slate-400 dark:text-slate-500 italic">Cancelled</span>
                       ) : (
-                        <button className="text-emerald-600 dark:text-emerald-400 hover:underline">View Receipt</button>
+                        <button 
+                          onClick={() => generateReceipt(booking)}
+                          className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                        >
+                          <Download className="w-4 h-4" /> View Receipt
+                        </button>
                       )}
                     </td>
                   </tr>
