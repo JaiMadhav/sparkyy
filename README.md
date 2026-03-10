@@ -309,13 +309,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## 👥 Maintainers
-
-- **Lead Engineer:** [Spark Team](https://github.com/spark-ev)
-- **Product Designer:** [Design Lead](https://github.com/spark-ev)
-
----
-
 ## 🙏 Acknowledgements
 
 - [Google AI Studio](https://ai.studio)
