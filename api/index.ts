@@ -52,9 +52,10 @@ app.post("/api/create-order", async (req, res) => {
 app.post("/api/verify-payment", async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const key_id = process.env.RAZORPAY_KEY_ID;
     const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!key_secret) {
+    if (!key_id || !key_secret) {
       return res.status(500).json({ error: "Razorpay API keys are not configured." });
     }
 
@@ -67,14 +68,57 @@ app.post("/api/verify-payment", async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      // Payment is successful
-      res.json({ success: true, message: "Payment verified successfully" });
+      // Fetch payment details to get the method
+      try {
+        const razorpay = new Razorpay({ key_id, key_secret });
+        const paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+        
+        // Payment is successful
+        res.json({ 
+          success: true, 
+          message: "Payment verified successfully",
+          payment_method: paymentDetails.method || "razorpay"
+        });
+      } catch (fetchError) {
+        console.error("Failed to fetch payment details:", fetchError);
+        // Fallback if fetch fails but signature is valid
+        res.json({ 
+          success: true, 
+          message: "Payment verified successfully",
+          payment_method: "razorpay"
+        });
+      }
     } else {
       res.status(400).json({ success: false, error: "Invalid signature" });
     }
   } catch (error: any) {
     console.error("Razorpay Verify Error:", error);
     res.status(500).json({ error: "Failed to verify payment" });
+  }
+});
+
+// Fetch payment details by ID
+app.get("/api/payment-details/:paymentId", async (req, res) => {
+  try {
+    const { paymentId } = req.params;
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!key_id || !key_secret) {
+      return res.status(500).json({ error: "Razorpay API keys are not configured." });
+    }
+
+    const razorpay = new Razorpay({ key_id, key_secret });
+    const paymentDetails = await razorpay.payments.fetch(paymentId);
+    
+    res.json({
+      success: true,
+      payment_method: paymentDetails.method || "razorpay",
+      status: paymentDetails.status
+    });
+  } catch (error: any) {
+    console.error("Failed to fetch payment details:", error);
+    res.status(500).json({ error: "Failed to fetch payment details" });
   }
 });
 

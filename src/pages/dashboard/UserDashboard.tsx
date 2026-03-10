@@ -113,11 +113,24 @@ export default function UserDashboard() {
       setProcessingPayment(true);
       
       const actualAmount = 1.00;
+      let paymentMethod = "razorpay_link";
+
+      try {
+        const response = await fetch(`/api/payment-details/${paymentId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.payment_method) {
+            paymentMethod = data.payment_method;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch payment details:", e);
+      }
 
       await paymentService.createPayment({
         booking_id: bookingRef,
         amount: actualAmount,
-        payment_method: "razorpay_link",
+        payment_method: paymentMethod,
         transaction_id: paymentId,
         status: "completed"
       });
