@@ -24,6 +24,7 @@ export default function PaymentPage() {
   const location = useLocation();
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [amount, setAmount] = useState(1.00);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -78,6 +79,7 @@ export default function PaymentPage() {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
+    setError(null);
 
     try {
       const isLoaded = await loadRazorpayScript();
@@ -178,6 +180,12 @@ export default function PaymentPage() {
         },
         theme: {
           color: "#059669"
+        },
+        modal: {
+          ondismiss: function() {
+            setProcessing(false);
+            setError("Payment pending. Please try again.");
+          }
         }
       };
 
@@ -185,10 +193,6 @@ export default function PaymentPage() {
       
       rzp.on('payment.failed', function (response: any){
         alert(response.error.description);
-        setProcessing(false);
-      });
-
-      rzp.on('payment.modal.closed', function() {
         setProcessing(false);
       });
 
@@ -237,6 +241,13 @@ export default function PaymentPage() {
                   <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md mb-6">
                     You will be redirected to Razorpay's secure checkout to complete your payment. All major credit cards, debit cards, UPI, and netbanking are supported.
                   </p>
+                  
+                  {error && (
+                    <div className="w-full max-w-md mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-300 text-sm font-medium">
+                      {error}
+                    </div>
+                  )}
+
                   <Button onClick={handlePayment} className="w-full max-w-xs h-12 text-lg" isLoading={processing}>
                     Pay ₹{amount.toFixed(2)}
                   </Button>
