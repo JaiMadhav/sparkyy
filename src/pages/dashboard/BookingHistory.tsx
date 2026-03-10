@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { bookingService } from "@/services/bookingService";
 import { CheckCircle2, Clock, XCircle, AlertTriangle, Download } from "lucide-react";
 import { supabase } from "@/supabaseClient";
+import { profileService } from "@/services/profileService";
 import { formatLocation } from "@/utils/location";
 
 export default function BookingHistory() {
@@ -55,73 +56,83 @@ export default function BookingHistory() {
     }
   };
 
-  const generateReceipt = (booking: any) => {
+  const generateReceipt = async (booking: any) => {
     const receiptWindow = window.open('', '_blank');
     if (!receiptWindow) {
       alert("Please allow popups to view the receipt.");
       return;
     }
 
-    const date = new Date(booking.created_at).toLocaleString();
-    const price = Number(booking.estimated_price).toFixed(2);
-    const vehicle = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model} (${booking.vehicle.registration_number})` : 'Unknown Vehicle';
-    const location = formatLocation(booking.location);
-    const energy = booking.energy_requested || 'N/A';
+    receiptWindow.document.write('<html><body><h2 style="font-family: sans-serif; padding: 20px;">Generating receipt...</h2></body></html>');
 
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Receipt - SPARK EV</title>
-        <style>
-          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; background: #f9f9f9; }
-          .receipt-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-          .logo { font-size: 28px; font-weight: bold; color: #059669; margin: 0; }
-          .logo span { color: #333; }
-          .receipt-title { font-size: 24px; color: #333; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-          .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .info-block { flex: 1; }
-          .info-block h3 { font-size: 14px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
-          .info-block p { margin: 0 0 5px 0; font-size: 16px; font-weight: 500; }
-          table { border-collapse: collapse; margin-bottom: 30px; width: 100%; }
-          th { text-align: left; padding: 12px; background: #f5f5f5; color: #333; font-weight: 600; text-transform: uppercase; font-size: 14px; border-bottom: 2px solid #ddd; }
-          td { padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 16px; }
-          .total-row td { font-weight: bold; font-size: 18px; border-top: 2px solid #333; border-bottom: none; }
-          .total-amount { color: #059669; font-size: 24px !important; }
-          .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
-          @media print {
-            body { background: #fff; padding: 0; }
-            .receipt-container { box-shadow: none; border: none; padding: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt-container">
-          <div class="header">
-            <div>
-              <h1 class="logo">SPARK <span>EV</span></h1>
-              <p style="margin: 5px 0 0 0; color: #666;">Mobile EV Charging Service</p>
+    try {
+      const profile = await profileService.getProfile();
+      const customerName = profile?.full_name || 'Customer';
+      const customerEmail = profile?.email || 'N/A';
+      const customerPhone = profile?.phone || 'N/A';
+
+      const date = new Date(booking.created_at).toLocaleString();
+      const price = Number(booking.estimated_price).toFixed(2);
+      const vehicle = booking.vehicle ? `${booking.vehicle.make} ${booking.vehicle.model} (${booking.vehicle.registration_number})` : 'Unknown Vehicle';
+      const location = formatLocation(booking.location);
+      const energy = booking.energy_requested || 'N/A';
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Receipt - SPARK EV</title>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 40px; background: #f9f9f9; }
+            .receipt-container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .logo { font-size: 28px; font-weight: bold; color: #059669; margin: 0; }
+            .logo span { color: #333; }
+            .receipt-title { font-size: 24px; color: #333; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+            .info-section { display: flex; justify-content: space-between; margin-bottom: 40px; }
+            .info-block { flex: 1; }
+            .info-block h3 { font-size: 14px; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+            .info-block p { margin: 0 0 5px 0; font-size: 16px; font-weight: 500; }
+            table { border-collapse: collapse; margin-bottom: 30px; width: 100%; }
+            th { text-align: left; padding: 12px; background: #f5f5f5; color: #333; font-weight: 600; text-transform: uppercase; font-size: 14px; border-bottom: 2px solid #ddd; }
+            td { padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 16px; }
+            .total-row td { font-weight: bold; font-size: 18px; border-top: 2px solid #333; border-bottom: none; }
+            .total-amount { color: #059669; font-size: 24px !important; }
+            .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+            @media print {
+              body { background: #fff; padding: 0; }
+              .receipt-container { box-shadow: none; border: none; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-container">
+            <div class="header">
+              <div>
+                <h1 class="logo">SPARK <span>EV</span></h1>
+                <p style="margin: 5px 0 0 0; color: #666;">Mobile EV Charging Service</p>
+              </div>
+              <div style="text-align: right;">
+                <h2 class="receipt-title">Tax Invoice / Receipt</h2>
+                <p style="margin: 5px 0 0 0; color: #666;">Receipt #: REC-${booking.id.substring(0, 8).toUpperCase()}</p>
+              </div>
             </div>
-            <div style="text-align: right;">
-              <h2 class="receipt-title">Tax Invoice / Receipt</h2>
-              <p style="margin: 5px 0 0 0; color: #666;">Receipt #: REC-${booking.id.substring(0, 8).toUpperCase()}</p>
+            
+            <div class="info-section">
+              <div class="info-block">
+                <h3>Billed To</h3>
+                <p>${customerName}</p>
+                <p style="font-weight: normal; color: #555; font-size: 14px;">Email: ${customerEmail}</p>
+                <p style="font-weight: normal; color: #555; font-size: 14px;">Phone: ${customerPhone}</p>
+                <p style="font-weight: normal; color: #555; font-size: 14px; margin-top: 5px;">Vehicle: ${vehicle}</p>
+              </div>
+              <div class="info-block" style="text-align: right;">
+                <h3>Date of Service</h3>
+                <p>${date}</p>
+                <h3>Service Status</h3>
+                <p style="color: #059669;">COMPLETED & PAID</p>
+              </div>
             </div>
-          </div>
-          
-          <div class="info-section">
-            <div class="info-block">
-              <h3>Billed To</h3>
-              <p>Customer</p>
-              <p style="font-weight: normal; color: #555;">${vehicle}</p>
-            </div>
-            <div class="info-block" style="text-align: right;">
-              <h3>Date of Service</h3>
-              <p>${date}</p>
-              <h3>Service Status</h3>
-              <p style="color: #059669;">COMPLETED & PAID</p>
-            </div>
-          </div>
           
           <table>
             <thead>
@@ -158,9 +169,13 @@ export default function BookingHistory() {
       </html>
     `;
 
-    receiptWindow.document.open();
-    receiptWindow.document.write(html);
-    receiptWindow.document.close();
+      receiptWindow.document.open();
+      receiptWindow.document.write(html);
+      receiptWindow.document.close();
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      receiptWindow.document.body.innerHTML = '<h2 style="font-family: sans-serif; padding: 20px; color: red;">Error generating receipt. Please try again.</h2>';
+    }
   };
 
   return (

@@ -5,11 +5,17 @@ export const paymentService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('No user logged in');
 
+    // Generate a receipt number for successful payments
+    const receipt_no = payment.status === 'completed' 
+      ? `RCPT-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`
+      : null;
+
     const { data, error } = await supabase
       .from('payments')
       .insert([{ 
         ...payment, 
-        user_id: user.id
+        user_id: user.id,
+        ...(receipt_no ? { receipt_no } : {})
       }])
       .select()
       .single();

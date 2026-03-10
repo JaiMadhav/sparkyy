@@ -59,10 +59,9 @@ export default function UserDashboard() {
       // which happens when multiple concurrent requests try to refresh the session.
       await supabase.auth.getSession();
 
-      const [bookings, vehiclesData, payments, profile, active] = await Promise.all([
+      const [bookings, vehiclesData, profile, active] = await Promise.all([
         bookingService.getBookings(),
         vehicleService.getVehicles(),
-        paymentService.getPayments(),
         profileService.getProfile(),
         bookingService.getActiveBooking()
       ]);
@@ -78,9 +77,17 @@ export default function UserDashboard() {
           return acc + energy;
         }, 0);
 
-      const totalSpent = payments
-        .filter((p: any) => p.status === 'completed')
-        .reduce((acc: number, curr: any) => acc + parseFloat(curr.amount), 0);
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      const totalSpent = bookings
+        .filter((b: any) => {
+          if (b.status !== 'completed') return false;
+          const date = new Date(b.created_at);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        })
+        .reduce((acc: number, curr: any) => acc + parseFloat(curr.estimated_price || '0'), 0);
 
       setStats({
         totalCharges,
@@ -181,7 +188,7 @@ export default function UserDashboard() {
         <StatCard 
           title="Total Spent" 
           value={`₹${stats.totalSpent.toFixed(2)}`} 
-          description="Lifetime spend" 
+          description="This month" 
           icon={<span className="font-bold text-sm">₹</span>} 
         />
       </div>
