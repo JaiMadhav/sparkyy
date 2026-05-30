@@ -1,0 +1,371 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --text-xs: 0.9375rem; /* 15px */
+  --text-sm: 1.0625rem; /* 17px */
+  --text-base: 1.1875rem; /* 19px */
+  --text-lg: 1.3125rem; /* 21px */
+  --text-xl: 1.5625rem; /* 25px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: 2.375rem; /* 38px */
+  --text-4xl: 3.125rem; /* 50px */
+
+  --text-xs--line-height: calc(1.5);
+  --text-sm--line-height: calc(1.5);
+  --text-base--line-height: calc(1.5);
+  --text-lg--line-height: calc(1.5);
+  --text-xl--line-height: calc(1.4);
+
+  --color-slate-50: var(--ds-slate-50);
+  --color-slate-100: var(--ds-slate-100);
+  --color-slate-200: var(--ds-slate-200);
+  --color-slate-300: var(--ds-slate-300);
+  --color-slate-400: var(--ds-slate-400);
+  --color-slate-500: var(--ds-slate-500);
+  --color-slate-600: var(--ds-slate-600);
+  --color-slate-700: var(--ds-slate-700);
+  --color-slate-800: var(--ds-slate-800);
+  --color-slate-900: var(--ds-slate-900);
+  --color-slate-950: var(--ds-slate-950);
+
+  --color-emerald-50: var(--ds-emerald-50);
+  --color-emerald-100: var(--ds-emerald-100);
+  --color-emerald-200: var(--ds-emerald-200);
+  --color-emerald-300: var(--ds-emerald-300);
+  --color-emerald-400: var(--ds-emerald-400);
+  --color-emerald-500: var(--ds-emerald-500);
+  --color-emerald-600: var(--ds-emerald-600);
+  --color-emerald-700: var(--ds-emerald-700);
+  --color-emerald-800: var(--ds-emerald-800);
+  --color-emerald-900: var(--ds-emerald-900);
+  --color-emerald-950: var(--ds-emerald-950);
+
+  --color-amber-50: var(--ds-amber-50);
+  --color-amber-100: var(--ds-amber-100);
+  --color-amber-200: var(--ds-amber-200);
+  --color-amber-300: var(--ds-amber-300);
+  --color-amber-400: var(--ds-amber-400);
+  --color-amber-500: var(--ds-amber-500);
+  --color-amber-600: var(--ds-amber-600);
+  --color-amber-700: var(--ds-amber-700);
+  --color-amber-800: var(--ds-amber-800);
+  --color-amber-900: var(--ds-amber-900);
+  --color-amber-950: var(--ds-amber-950);
+
+  --color-blue-50: var(--ds-blue-50);
+  --color-blue-100: var(--ds-blue-100);
+  --color-blue-200: var(--ds-blue-200);
+  --color-blue-300: var(--ds-blue-300);
+  --color-blue-400: var(--ds-blue-400);
+  --color-blue-500: var(--ds-blue-500);
+  --color-blue-600: var(--ds-blue-600);
+  --color-blue-700: var(--ds-blue-700);
+  --color-blue-800: var(--ds-blue-800);
+  --color-blue-900: var(--ds-blue-900);
+  --color-blue-950: var(--ds-blue-950);
+
+  --color-white: var(--ds-white);
+  --color-black: var(--ds-black);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+:root {
+  /* Default DARK mode for Spark EV */
+  --ds-slate-950: #020617;
+  --ds-slate-900: #0f172a;
+  --ds-slate-800: #1e293b;
+  --ds-slate-700: #334155;
+  --ds-slate-600: #475569;
+  --ds-slate-500: #64748b;
+  --ds-slate-400: #94a3b8;
+  --ds-slate-300: #cbd5e1;
+  --ds-slate-200: #e2e8f0;
+  --ds-slate-100: #f1f5f9;
+  --ds-slate-50: #f8fafc;
+
+  --ds-emerald-950: #022c22;
+  --ds-emerald-900: #064e3b;
+  --ds-emerald-800: #065f46;
+  --ds-emerald-700: #047857;
+  --ds-emerald-600: #059669;
+  --ds-emerald-500: #10b981;
+  --ds-emerald-400: #34d399;
+  --ds-emerald-300: #6ee7b7;
+  --ds-emerald-200: #a7f3d0;
+  --ds-emerald-100: #d1fae5;
+  --ds-emerald-50: #ecfdf5;
+
+  --ds-amber-950: #451a03;
+  --ds-amber-900: #78350f;
+  --ds-amber-800: #92400e;
+  --ds-amber-700: #b45309;
+  --ds-amber-600: #d97706;
+  --ds-amber-500: #f59e0b;
+  --ds-amber-400: #fbbf24;
+  --ds-amber-300: #fcd34d;
+  --ds-amber-200: #fde68a;
+  --ds-amber-100: #fef3c7;
+  --ds-amber-50: #fffbeb;
+
+  --ds-blue-950: #172554;
+  --ds-blue-900: #1e3a8a;
+  --ds-blue-800: #1e40af;
+  --ds-blue-700: #1d4ed8;
+  --ds-blue-600: #2563eb;
+  --ds-blue-500: #3b82f6;
+  --ds-blue-400: #60a5fa;
+  --ds-blue-300: #93c5fd;
+  --ds-blue-200: #bfdbfe;
+  --ds-blue-100: #dbeafe;
+  --ds-blue-50: #eff6ff;
+
+  --ds-white: #ffffff;
+  --ds-black: #000000;
+
+  --background: var(--ds-slate-950);
+  --foreground: var(--ds-white);
+}
+
+.light {
+  /* PREMIUM LIGHT MODE INTEGRATION */
+  --ds-slate-950: #f4f4f5; /* App background - clean zinc-100 for strong card separation */
+  --ds-slate-900: #ffffff; /* Card background - pure white elevated surfaces */
+  --ds-slate-800: #e4e4e7; /* Surface/Subtle border zinc-200. Clean dividing lines */
+  --ds-slate-700: #d4d4d8; /* Hover state / deeper borders zinc-300 */
+  --ds-slate-600: #a1a1aa; /* Secondary icons / inactive zinc-400 */
+  --ds-slate-500: #71717a; /* Muted text / helper text zinc-500 */
+  --ds-slate-400: #52525b; /* Important secondary text zinc-600 (High contrast) */
+  --ds-slate-300: #3f3f46; /* Primary text block zinc-700 */
+  --ds-slate-200: #27272a; /* Subheadings zinc-800 */
+  --ds-slate-100: #18181b; /* Strong headings zinc-900 */
+  --ds-slate-50: #09090b;
+
+  --ds-white: #09090b; /* Map white text to almost black text */
+  --ds-black: #ffffff;
+
+  /* Invert Accents for Readable Light Mode */
+  --ds-emerald-950: #ecfdf5; /* emerald-50 */
+  --ds-emerald-900: #d1fae5; /* emerald-100 */
+  --ds-emerald-800: #a7f3d0; /* emerald-200 */
+  --ds-emerald-700: #6ee7b7; /* emerald-300 */
+  --ds-emerald-600: #34d399; /* emerald-400 */
+  --ds-emerald-500: #10b981; /* emerald-500 */
+  --ds-emerald-400: #059669; /* emerald-600 (Darker for light mode legibility) */
+  --ds-emerald-300: #047857; /* emerald-700 */
+  --ds-emerald-200: #065f46; /* emerald-800 */
+  --ds-emerald-100: #064e3b; /* emerald-900 */
+  --ds-emerald-50: #022c22; /* emerald-950 */
+
+  --ds-amber-950: #fffbeb;
+  --ds-amber-900: #fef3c7;
+  --ds-amber-800: #fde68a;
+  --ds-amber-700: #fcd34d;
+  --ds-amber-600: #fbbf24;
+  --ds-amber-500: #f59e0b;
+  --ds-amber-400: #d97706; /* amber-600 */
+  --ds-amber-300: #b45309; /* amber-700 */
+  --ds-amber-200: #92400e; /* amber-800 */
+  --ds-amber-100: #78350f; /* amber-900 */
+  --ds-amber-50: #451a03;
+
+  --ds-blue-950: #eff6ff;
+  --ds-blue-900: #dbeafe;
+  --ds-blue-800: #bfdbfe;
+  --ds-blue-700: #93c5fd;
+  --ds-blue-600: #60a5fa;
+  --ds-blue-500: #3b82f6;
+  --ds-blue-400: #2563eb; /* blue-600 */
+  --ds-blue-300: #1d4ed8; /* blue-700 */
+  --ds-blue-200: #1e40af; /* blue-800 */
+  --ds-blue-100: #1e3a8a; /* blue-900 */
+  --ds-blue-50: #172554;
+
+  /* Refined, deeper shadows for premium light mode depth hierarchy */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg:
+    0 10px 25px -3px rgba(0, 0, 0, 0.04), 0 4px 10px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl:
+    0 20px 35px -5px rgba(0, 0, 0, 0.04), 0 8px 15px -6px rgba(0, 0, 0, 0.03);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
+}
+
+/* HIGH-CONTRAST LIGHT MODE FIXES FOR HARDCODED DARK CLASSES */
+html.light .border-white\/5,
+html.light [class*="border-white/5"] {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+html.light .border-white\/10,
+html.light [class*="border-white/10"] {
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+html.light .border-white\/20,
+html.light [class*="border-white/20"] {
+  border-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+html.light .bg-white\/5,
+html.light [class*="bg-white/5"] {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+html.light .bg-white\/10,
+html.light [class*="bg-white/10"] {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.map-tiles-dark {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+html.light .map-tiles-dark {
+  filter: none;
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(244, 63, 94, 0.5));
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.9))
+      drop-shadow(0 0 4px rgba(244, 63, 94, 0.6));
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+:root {
+  --logo-color-rgb: 0, 255, 163;
+  --logo-core-color: #00ffa3;
+  --logo-glow-intensity: 1;
+  --logo-bg-alpha: 0.15;
+  --logo-border-alpha: 0.6;
+  --logo-fill-alpha-low: 0.4;
+  --logo-fill-alpha-high: 0.7;
+}
+
+.light {
+  --logo-color-rgb: 4, 120, 87; /* emerald-700 */
+  --logo-core-color: #059669; /* emerald-600 */
+  --logo-glow-intensity: 0.8; /* slightly reduce massive glow spread on white background */
+  --logo-bg-alpha: 0.1;
+  --logo-border-alpha: 0.7;
+  --logo-fill-alpha-low: 0.7;
+  --logo-fill-alpha-high: 1;
+}
+
+@keyframes logo-glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 calc(15px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.4),
+      0 0 calc(25px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.15),
+      inset 0 0 calc(8px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 calc(22px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.8),
+      0 0 calc(40px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.35),
+      inset 0 0 calc(12px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.4);
+  }
+}
+
+@keyframes logo-icon-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(
+      0 0 calc(6px * var(--logo-glow-intensity))
+        rgba(var(--logo-color-rgb), 0.8)
+    );
+    fill: rgba(var(--logo-color-rgb), var(--logo-fill-alpha-low));
+  }
+  50% {
+    filter: drop-shadow(
+      0 0 calc(12px * var(--logo-glow-intensity)) rgba(var(--logo-color-rgb), 1)
+    );
+    fill: rgba(var(--logo-color-rgb), var(--logo-fill-alpha-high));
+  }
+}
+
+.logo-box-glow {
+  background: rgba(var(--logo-color-rgb), var(--logo-bg-alpha));
+  border: 1px solid rgba(var(--logo-color-rgb), var(--logo-border-alpha));
+  animation: logo-glow-pulse 2.5s ease-in-out infinite;
+}
+
+.logo-icon-glow {
+  color: var(--logo-core-color);
+  animation: logo-icon-pulse 2.5s ease-in-out infinite;
+}
+
+
+
+.leaflet-container {
+  background-color: #0f172a !important;
+}
+
+html.light .leaflet-container {
+  background-color: #f8fafc !important;
+}
+
+/* Subtle ambient card shadow for Light Mode */
+html.light .bg-slate-900,
+html.light [class*="bg-slate-900/"] {
+  box-shadow:
+    0 4px 20px -2px rgba(0, 0, 0, 0.03),
+    0 0 3px rgba(0, 0, 0, 0.02);
+}
+
+.leaflet-right {
+  margin-right: 16px !important;
+}
+.leaflet-top {
+  margin-top: 16px !important;
+}
+
+@keyframes route-high-blink {
+  0%, 100% { stroke-opacity: 0.9; }
+  50% { stroke-opacity: 0.05; }
+}
+
+.spark-route-line {
+  stroke: #064e3b !important; /* emerald-900 */
+  stroke-opacity: 0.9 !important;
+  stroke-width: 6 !important;
+}
+
+html.dark .spark-route-line {
+  stroke: #34d399 !important; /* emerald-400 */
+}
+
+.animate-route-blink {
+  animation: route-high-blink 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
